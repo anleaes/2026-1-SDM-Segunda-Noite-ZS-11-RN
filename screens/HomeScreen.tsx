@@ -194,7 +194,11 @@ const HomeScreen = ({ navigation }: Props) => {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      testID="home-dashboard-scroll"
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
       <View style={styles.topBar}>
         <View>
           <Text style={styles.eyebrow}>Painel executivo</Text>
