@@ -141,6 +141,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Categoria de contrato',
     endpoint: '/categorias-contrato/',
     icon: 'pricetags-outline',
+    description: 'Classifique contratos por tipo, prioridade e finalidade.',
     listFields: ['name', 'priority_level', 'is_active'],
     fields: [
       { name: 'name', label: 'Nome', type: 'text', required: true },
