@@ -82,6 +82,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Funcionário',
     endpoint: '/funcionarios/',
     icon: 'briefcase-outline',
+    description: 'Organize os dados funcionais dos responsaveis pelos contratos.',
     listFields: ['first_name', 'last_name', 'position'],
     fields: [
       { name: 'first_name', label: 'Primeiro nome', type: 'text', required: true },
