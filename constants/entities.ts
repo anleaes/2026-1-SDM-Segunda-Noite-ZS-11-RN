@@ -101,6 +101,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Usuário',
     endpoint: '/usuarios/',
     icon: 'person-circle-outline',
+    description: 'Gerencie usuarios, perfis de acesso e vinculos com funcionarios.',
     listFields: ['username', 'profile', 'employee'],
     fields: [
       { name: 'username', label: 'Usuário', type: 'text', required: true },
