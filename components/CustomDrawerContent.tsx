@@ -8,7 +8,7 @@ const CustomDrawerContent = (props: any) => {
       <View style={styles.header}>
         <Text style={styles.logo}>GC</Text>
         <Text style={styles.name}>Gestão de Contratos</Text>
-        <Text style={styles.subtitle}>React Native + Django REST</Text>
+        <Text style={styles.subtitle}>Cadastros e contratos</Text>
       </View>
       <View style={styles.list}>
         <DrawerItemList {...props} />
