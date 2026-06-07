@@ -156,6 +156,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Serviço',
     endpoint: '/servicos/',
     icon: 'construct-outline',
+    description: 'Cadastre servicos oferecidos e seus valores de referencia.',
     listFields: ['name', 'unit_price', 'is_active'],
     fields: [
       { name: 'name', label: 'Nome', type: 'text', required: true },
