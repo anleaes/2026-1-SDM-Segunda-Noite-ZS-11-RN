@@ -187,6 +187,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Item de contrato',
     endpoint: '/itens-contrato/',
     icon: 'cart-outline',
+    description: 'Detalhe servicos, quantidades e valores vinculados ao contrato.',
     listFields: ['contract', 'service', 'quantity', 'total_price'],
     fields: [
       { name: 'quantity', label: 'Quantidade', type: 'number', required: true },
