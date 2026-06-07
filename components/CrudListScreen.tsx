@@ -154,7 +154,7 @@ export default function CrudListScreen({ navigation, config }: Props) {
           data={items}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
-          ListEmptyComponent={<Text style={styles.empty}>Nenhum registro encontrado.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>Nenhum registro encontrado para {config.title.toLowerCase()}.</Text>}
           contentContainerStyle={{ paddingBottom: 90 }}
         />
       )}
