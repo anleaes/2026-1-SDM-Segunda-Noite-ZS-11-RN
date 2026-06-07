@@ -224,6 +224,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Documento',
     endpoint: '/documentos/',
     icon: 'folder-outline',
+    description: 'Registre arquivos, assinaturas e documentos associados aos contratos.',
     listFields: ['file_name', 'file_type', 'is_signed'],
     fields: [
       { name: 'file_name', label: 'Nome do arquivo', type: 'text', required: true },
