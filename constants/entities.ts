@@ -203,6 +203,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Pagamento',
     endpoint: '/pagamentos/',
     icon: 'cash-outline',
+    description: 'Controle parcelas, vencimentos e formas de pagamento dos contratos.',
     listFields: ['contract', 'installment_number', 'value', 'status'],
     fields: [
       { name: 'installment_number', label: 'Número da parcela', type: 'number', required: true },
