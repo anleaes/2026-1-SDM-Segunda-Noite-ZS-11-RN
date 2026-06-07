@@ -194,7 +194,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
         <ActivityIndicator size="large" color="#1E5AA8" style={{ marginTop: 20 }} />
       ) : (
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveText}>Salvar</Text>
+          <Text style={styles.saveText}>{isEditing ? 'Salvar alteracoes' : 'Cadastrar'}</Text>
         </TouchableOpacity>
       )}
 
