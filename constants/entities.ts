@@ -59,6 +59,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Cliente',
     endpoint: '/clientes/',
     icon: 'people-outline',
+    description: 'Cadastre clientes e mantenha os dados de contato atualizados.',
     listFields: ['company_name', 'cpf_cnpj', 'email'],
     fields: [
       { name: 'first_name', label: 'Primeiro nome', type: 'text', required: true },
