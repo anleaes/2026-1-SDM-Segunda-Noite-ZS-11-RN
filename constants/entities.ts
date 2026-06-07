@@ -236,6 +236,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Notificação',
     endpoint: '/notificacoes/',
     icon: 'notifications-outline',
+    description: 'Monitore avisos de vencimentos, pagamentos e comunicados gerais.',
     listFields: ['title', 'notification_type', 'is_read'],
     fields: [
       { name: 'title', label: 'Título', type: 'text', required: true },
