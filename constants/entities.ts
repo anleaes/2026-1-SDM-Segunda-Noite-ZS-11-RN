@@ -267,6 +267,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Auditoria',
     endpoint: '/auditorias/',
     icon: 'time-outline',
+    description: 'Consulte registros de acoes, usuarios e rastreabilidade do sistema.',
     listFields: ['action', 'action_date', 'ip_address'],
     fields: [
       { name: 'action', label: 'Ação', type: 'text', required: true },
