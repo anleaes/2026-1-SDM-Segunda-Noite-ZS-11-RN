@@ -120,6 +120,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Canal de contato',
     endpoint: '/canais-contato/',
     icon: 'chatbubbles-outline',
+    description: 'Defina os meios disponiveis para contato com clientes.',
     listFields: ['name', 'channel_type', 'is_active'],
     fields: [
       { name: 'name', label: 'Nome', type: 'text', required: true },
