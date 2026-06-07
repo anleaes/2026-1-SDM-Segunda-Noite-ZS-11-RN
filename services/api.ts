@@ -2,7 +2,7 @@ import { buildUrl } from '../constants/api';
 
 export async function apiList(endpoint: string) {
   const response = await fetch(buildUrl(endpoint));
-  if (!response.ok) throw new Error(`Erro ao listar: ${response.status}`);
+  if (!response.ok) throw new Error(`Erro ao listar registros (${response.status}). Tente novamente.`);
   return response.json();
 }
 
