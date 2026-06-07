@@ -167,6 +167,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     singular: 'Contrato',
     endpoint: '/contratos/',
     icon: 'document-text-outline',
+    description: 'Acompanhe contratos, vigencias, status e valores negociados.',
     listFields: ['number', 'title', 'status', 'total_value'],
     fields: [
       { name: 'number', label: 'Número', type: 'text', required: true },
