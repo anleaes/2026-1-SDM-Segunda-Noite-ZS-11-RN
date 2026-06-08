@@ -41,7 +41,8 @@ export default function DrawerNavigator() {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={({ navigation }) => ({
         drawerActiveTintColor: '#1E5AA8',
-        drawerLabelStyle: { marginLeft: 0, fontSize: 15 },
+        drawerInactiveTintColor: '#34415A',
+        drawerLabelStyle: { marginLeft: 0, fontSize: 15, fontWeight: '700' },
         drawerStyle: { backgroundColor: '#fff', width: 285 },
 
         headerStyle: { backgroundColor: '#1E5AA8' },
