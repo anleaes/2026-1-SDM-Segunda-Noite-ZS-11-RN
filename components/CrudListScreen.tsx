@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerScreenProps } from '@react-navigation/drawer';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { EntityConfig } from '../constants/entities';
 import { DrawerParamList } from '../navigation/DrawerNavigator';
 import { apiDelete, apiList } from '../services/api';
@@ -15,7 +15,7 @@ type RelationMaps = Record<string, Record<string, string>>;
 
 const formatValue = (value: any) => {
   if (Array.isArray(value)) return value.join(', ');
-  if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+  if (typeof value === 'boolean') return value ? 'Sim' : 'Nao';
   if (value === null || value === undefined || value === '') return '-';
   return String(value);
 };
@@ -25,6 +25,7 @@ export default function CrudListScreen({ navigation, config }: Props) {
   const [relationMaps, setRelationMaps] = useState<RelationMaps>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleteTargetId, setDeleteTargetId] = useState<number | string | null>(null);
 
   const getFieldConfig = (fieldName: string) => {
     return config.fields.find(field => field.name === fieldName);
@@ -89,22 +90,18 @@ export default function CrudListScreen({ navigation, config }: Props) {
     }, [config.endpoint])
   );
 
-  const handleDelete = (id: number) => {
-    Alert.alert('Confirmar exclusão', `Deseja excluir este ${config.singular.toLowerCase()}?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await apiDelete(config.endpoint, id);
-            setItems(prev => prev.filter(item => item.id !== id));
-          } catch (err: any) {
-            Alert.alert('Erro', err.message || 'Não foi possível excluir.');
-          }
-        },
-      },
-    ]);
+  const deleteItem = async (id: number | string) => {
+    try {
+      await apiDelete(config.endpoint, id);
+      setItems(prev => prev.filter(item => String(item.id) !== String(id)));
+      setDeleteTargetId(null);
+    } catch (err: any) {
+      Alert.alert('Erro', err.message || 'Nao foi possivel excluir.');
+    }
+  };
+
+  const handleDelete = (id: number | string) => {
+    setDeleteTargetId(id);
   };
 
   const renderItem = ({ item }: { item: any }) => (
@@ -165,6 +162,39 @@ export default function CrudListScreen({ navigation, config }: Props) {
       >
         <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={deleteTargetId !== null}
+        onRequestClose={() => setDeleteTargetId(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Confirmar exclusao</Text>
+            <Text style={styles.modalText}>
+              Deseja excluir este {config.singular.toLowerCase()}?
+            </Text>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setDeleteTargetId(null)}>
+                <Text style={styles.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmDeleteButton]}
+                onPress={() => {
+                  if (deleteTargetId !== null) {
+                    deleteItem(deleteTargetId);
+                  }
+                }}
+              >
+                <Text style={styles.actionText}>Excluir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -183,4 +213,13 @@ const styles = StyleSheet.create({
   fab: { position: 'absolute', right: 22, bottom: 22, backgroundColor: '#1E5AA8', width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', elevation: 5 },
   empty: { textAlign: 'center', color: '#5D6778', marginTop: 40 },
   error: { backgroundColor: '#FDECEC', color: '#A12727', padding: 12, borderRadius: 10 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(23, 35, 61, 0.45)', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalContent: { width: '100%', maxWidth: 360, backgroundColor: '#fff', borderRadius: 10, padding: 20, elevation: 6, shadowColor: '#000', shadowOpacity: 0.12, shadowOffset: { width: 0, height: 4 }, shadowRadius: 10 },
+  modalTitle: { fontSize: 18, fontWeight: '800', color: '#17233D', marginBottom: 8 },
+  modalText: { fontSize: 15, color: '#34415A', lineHeight: 22 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 20 },
+  modalButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
+  cancelButton: { backgroundColor: '#E8EEF7' },
+  confirmDeleteButton: { backgroundColor: '#D64545' },
+  cancelText: { color: '#34415A', fontWeight: '700' },
 });

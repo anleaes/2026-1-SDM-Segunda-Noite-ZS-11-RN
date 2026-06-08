@@ -32,7 +32,7 @@ export async function apiUpdate(endpoint: string, id: number, payload: any) {
   return response.json();
 }
 
-export async function apiDelete(endpoint: string, id: number) {
+export async function apiDelete(endpoint: string, id: number | string) {
   const response = await fetch(buildUrl(endpoint, id), { method: 'DELETE' });
   if (!response.ok) throw new Error(`Erro ao excluir: ${response.status}`);
 }
