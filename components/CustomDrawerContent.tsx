@@ -1,8 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
 import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+import { useAuth } from '../contexts/AuthContext';
 
 const CustomDrawerContent = (props: any) => {
+  const { logout } = useAuth();
+
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={{ flexGrow: 1 }}>
       <View style={styles.header}>
@@ -12,6 +17,12 @@ const CustomDrawerContent = (props: any) => {
       </View>
       <View style={styles.list}>
         <DrawerItemList {...props} />
+      </View>
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+          <Ionicons name="log-out-outline" size={20} color="#A12727" />
+          <Text style={styles.logoutText}>Sair</Text>
+        </TouchableOpacity>
       </View>
     </DrawerContentScrollView>
   );
@@ -23,6 +34,9 @@ const styles = StyleSheet.create({
   name: { color: '#fff', fontSize: 18, fontWeight: '800' },
   subtitle: { color: '#DCE9FF', fontSize: 12, marginTop: 4 },
   list: { flex: 1, paddingTop: 10 },
+  footer: { borderTopColor: '#E7ECF3', borderTopWidth: 1, padding: 14 },
+  logoutButton: { alignItems: 'center', borderRadius: 8, flexDirection: 'row', gap: 10, minHeight: 44, paddingHorizontal: 10 },
+  logoutText: { color: '#A12727', fontSize: 15, fontWeight: '800' },
 });
 
 export default CustomDrawerContent;
