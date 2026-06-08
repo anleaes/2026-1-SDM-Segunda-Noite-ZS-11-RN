@@ -1,15 +1,5 @@
 import { buildUrl } from '../constants/api';
 
-let authToken: string | null = null;
-
-export function setApiAuthToken(token: string | null) {
-  authToken = token;
-}
-
-const authHeaders = (): Record<string, string> => {
-  return authToken ? { Authorization: `Token ${authToken}` } : {};
-};
-
 const readErrorMessage = async (response: Response, fallback: string) => {
   const errorText = await response.text();
 
@@ -29,6 +19,7 @@ export async function apiLogin(username: string, password: string) {
   const response = await fetch(buildUrl('/token-autenticacao/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ username, password }),
   });
 
@@ -36,15 +27,31 @@ export async function apiLogin(username: string, password: string) {
     throw new Error(await readErrorMessage(response, 'Usuario ou senha invalidos.'));
   }
 
-  const data = await response.json();
-  if (!data?.token) throw new Error('Token de autenticacao nao retornado pelo servidor.');
+  return response.json();
+}
 
-  return String(data.token);
+export async function apiAuthStatus() {
+  const response = await fetch(buildUrl('/auth/status/'), {
+    credentials: 'include',
+  });
+
+  return response.ok;
+}
+
+export async function apiLogout() {
+  const response = await fetch(buildUrl('/auth/logout/'), {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'Erro ao sair do sistema.'));
+  }
 }
 
 export async function apiList(endpoint: string) {
   const response = await fetch(buildUrl(endpoint), {
-    headers: authHeaders(),
+    credentials: 'include',
   });
   if (!response.ok) throw new Error(`Erro ao listar registros (${response.status}). Tente novamente.`);
   return response.json();
@@ -53,7 +60,8 @@ export async function apiList(endpoint: string) {
 export async function apiCreate(endpoint: string, payload: any) {
   const response = await fetch(buildUrl(endpoint), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -65,7 +73,8 @@ export async function apiCreate(endpoint: string, payload: any) {
 export async function apiUpdate(endpoint: string, id: number, payload: any) {
   const response = await fetch(buildUrl(endpoint, id), {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -77,7 +86,7 @@ export async function apiUpdate(endpoint: string, id: number, payload: any) {
 export async function apiDelete(endpoint: string, id: number | string) {
   const response = await fetch(buildUrl(endpoint, id), {
     method: 'DELETE',
-    headers: authHeaders(),
+    credentials: 'include',
   });
   if (!response.ok) throw new Error(`Erro ao excluir: ${response.status}`);
 }
