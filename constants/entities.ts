@@ -27,6 +27,7 @@ export type EntityConfig = {
   icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
   fields: EntityField[];
   listFields: string[];
+  description?: string;
 };
 
 const statusContrato = [
