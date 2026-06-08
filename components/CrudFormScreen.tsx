@@ -135,7 +135,11 @@ export default function CrudFormScreen({ route, navigation }: Props) {
         <View key={field.name}>
           <Text style={styles.label}>{field.label}</Text>
           <View style={styles.pickerWrapper}>
-            <Picker selectedValue={value} onValueChange={(selected) => setValue(field.name, selected)}>
+            <Picker
+              selectedValue={value}
+              onValueChange={(selected) => setValue(field.name, selected)}
+              style={styles.picker}
+            >
               <Picker.Item label="Selecione..." value="" />
               {options.map(option => (
                 <Picker.Item key={String(option.value)} label={String(option.label)} value={option.value} />
@@ -212,7 +216,8 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '700', color: '#34415A', marginBottom: 6, marginTop: 12 },
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D8DEE9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15 },
   textarea: { height: 90, textAlignVertical: 'top' },
-  pickerWrapper: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D8DEE9', borderRadius: 10, overflow: 'hidden' },
+  pickerWrapper: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D8DEE9', borderRadius: 10, minHeight: 48, justifyContent: 'center', overflow: 'hidden' },
+  picker: { minHeight: 48, fontSize: 15, color: '#17233D' },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
   multiContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { borderWidth: 1, borderColor: '#1E5AA8', borderRadius: 18, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: '#fff' },
