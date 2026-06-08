@@ -21,6 +21,7 @@ const formatValue = (value: any) => {
 };
 
 export default function CrudListScreen({ navigation, config }: Props) {
+  const isReadOnly = config.key === 'auditorias';
   const [items, setItems] = useState<any[]>([]);
   const [relationMaps, setRelationMaps] = useState<RelationMaps>({});
   const [loading, setLoading] = useState(true);
@@ -126,15 +127,17 @@ export default function CrudListScreen({ navigation, config }: Props) {
           style={[styles.actionButton, styles.editButton]}
           onPress={() => navigation.navigate('EntityForm', { entityKey: config.key, item })}
         >
-          <Text style={styles.actionText}>Editar</Text>
+          <Text style={styles.actionText}>{isReadOnly ? 'Visualizar' : 'Editar'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => handleDelete(item.id)}
-        >
-          <Text style={styles.actionText}>Excluir</Text>
-        </TouchableOpacity>
+        {!isReadOnly && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDelete(item.id)}
+          >
+            <Text style={styles.actionText}>Excluir</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -156,45 +159,49 @@ export default function CrudListScreen({ navigation, config }: Props) {
         />
       )}
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('EntityForm', { entityKey: config.key })}
-      >
-        <Ionicons name="add" size={30} color="#fff" />
-      </TouchableOpacity>
+      {!isReadOnly && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('EntityForm', { entityKey: config.key })}
+        >
+          <Ionicons name="add" size={30} color="#fff" />
+        </TouchableOpacity>
+      )}
 
-      <Modal
-        transparent
-        animationType="fade"
-        visible={deleteTargetId !== null}
-        onRequestClose={() => setDeleteTargetId(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Confirmar exclusao</Text>
-            <Text style={styles.modalText}>
-              Deseja excluir este {config.singular.toLowerCase()}?
-            </Text>
+      {!isReadOnly && (
+        <Modal
+          transparent
+          animationType="fade"
+          visible={deleteTargetId !== null}
+          onRequestClose={() => setDeleteTargetId(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Confirmar exclusao</Text>
+              <Text style={styles.modalText}>
+                Deseja excluir este {config.singular.toLowerCase()}?
+              </Text>
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setDeleteTargetId(null)}>
-                <Text style={styles.cancelText}>Cancelar</Text>
-              </TouchableOpacity>
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setDeleteTargetId(null)}>
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmDeleteButton]}
-                onPress={() => {
-                  if (deleteTargetId !== null) {
-                    deleteItem(deleteTargetId);
-                  }
-                }}
-              >
-                <Text style={styles.actionText}>Excluir</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmDeleteButton]}
+                  onPress={() => {
+                    if (deleteTargetId !== null) {
+                      deleteItem(deleteTargetId);
+                    }
+                  }}
+                >
+                  <Text style={styles.actionText}>Excluir</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 }
