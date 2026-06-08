@@ -1,76 +1,65 @@
 import React, { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 
-import { apiLogin, setApiAuthToken } from '../services/api';
+import { apiAuthStatus, apiLogin, apiLogout } from '../services/api';
 
 type AuthContextValue = {
   isLoading: boolean;
   isAuthenticated: boolean;
-  token: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
-const TOKEN_STORAGE_KEY = 'gestao-contratos:auth-token';
+const LEGACY_TOKEN_STORAGE_KEY = 'gestao-contratos:auth-token';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const canUseLocalStorage = () => {
+const clearLegacyLocalStorageToken = () => {
   try {
-    return typeof globalThis.localStorage !== 'undefined';
+    globalThis.localStorage?.removeItem(LEGACY_TOKEN_STORAGE_KEY);
   } catch {
-    return false;
-  }
-};
-
-const loadStoredToken = () => {
-  if (!canUseLocalStorage()) return null;
-  return globalThis.localStorage.getItem(TOKEN_STORAGE_KEY);
-};
-
-const storeToken = (token: string | null) => {
-  if (!canUseLocalStorage()) return;
-
-  if (token) {
-    globalThis.localStorage.setItem(TOKEN_STORAGE_KEY, token);
     return;
   }
-
-  globalThis.localStorage.removeItem(TOKEN_STORAGE_KEY);
 };
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [token, setToken] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = loadStoredToken();
-    setToken(storedToken);
-    setApiAuthToken(storedToken);
-    setIsLoading(false);
+    const loadSession = async () => {
+      clearLegacyLocalStorageToken();
+      const authenticated = await apiAuthStatus();
+      setIsAuthenticated(authenticated);
+      setIsLoading(false);
+    };
+
+    loadSession().catch(() => {
+      setIsAuthenticated(false);
+      setIsLoading(false);
+    });
   }, []);
 
   const login = async (username: string, password: string) => {
-    const nextToken = await apiLogin(username, password);
-    setToken(nextToken);
-    setApiAuthToken(nextToken);
-    storeToken(nextToken);
+    await apiLogin(username, password);
+    setIsAuthenticated(true);
   };
 
   const logout = async () => {
-    setToken(null);
-    setApiAuthToken(null);
-    storeToken(null);
+    try {
+      await apiLogout();
+    } finally {
+      setIsAuthenticated(false);
+    }
   };
 
   const value = useMemo(
     () => ({
       isLoading,
-      isAuthenticated: Boolean(token),
-      token,
+      isAuthenticated,
       login,
       logout,
     }),
-    [isLoading, token]
+    [isAuthenticated, isLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
