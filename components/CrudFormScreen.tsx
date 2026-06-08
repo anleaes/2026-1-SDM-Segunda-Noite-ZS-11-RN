@@ -1,7 +1,7 @@
 import { Picker } from '@react-native-picker/picker';
 import { DrawerScreenProps } from '@react-navigation/drawer';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { entityConfigs, EntityField } from '../constants/entities';
 import { DrawerParamList } from '../navigation/DrawerNavigator';
 import { apiCreate, apiList, apiUpdate } from '../services/api';
@@ -49,6 +49,47 @@ const maskFieldValue = (fieldName: string, value: any, formValues?: Record<strin
   return value;
 };
 
+const normalizeDateValue = (value: any) => {
+  const text = String(value ?? '').trim();
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const brMatch = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+  if (isoMatch) return text;
+  if (brMatch) {
+    const [, day, month, year] = brMatch;
+    return `${year}-${month}-${day}`;
+  }
+
+  return text;
+};
+
+const parseDateInput = (value: any) => {
+  const text = String(value ?? '').trim();
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const brMatch = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+  const parts = isoMatch
+    ? { year: Number(isoMatch[1]), month: Number(isoMatch[2]), day: Number(isoMatch[3]) }
+    : brMatch
+      ? { year: Number(brMatch[3]), month: Number(brMatch[2]), day: Number(brMatch[1]) }
+      : null;
+
+  if (!parts) return null;
+
+  const date = new Date(parts.year, parts.month - 1, parts.day);
+  const isValid =
+    date.getFullYear() === parts.year &&
+    date.getMonth() === parts.month - 1 &&
+    date.getDate() === parts.day;
+
+  return isValid ? date : null;
+};
+
+const todayDateOnly = () => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+};
+
 const castValue = (field: EntityField, value: any) => {
   if (field.type === 'number' || field.type === 'select') {
     if (value === '') return null;
@@ -59,6 +100,7 @@ const castValue = (field: EntityField, value: any) => {
     if (value === '') return '0.00';
     return String(value).replace(',', '.');
   }
+  if (field.type === 'date') return normalizeDateValue(value);
   if (field.type === 'boolean') return Boolean(value);
   if (field.type === 'multiselect') return Array.isArray(value) ? value : [];
   return value;
@@ -71,6 +113,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
 
   const [form, setForm] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
   const [relationOptions, setRelationOptions] = useState<Record<string, Option[]>>({});
 
   useEffect(() => {
@@ -112,6 +155,8 @@ export default function CrudFormScreen({ route, navigation }: Props) {
   }, [entityKey]);
 
   const setValue = (name: string, value: any) => {
+    if (formError) setFormError('');
+
     setForm(prev => {
       const next = { ...prev, [name]: value };
 
@@ -133,17 +178,43 @@ export default function CrudFormScreen({ route, navigation }: Props) {
   const handleSave = async () => {
     try {
       setSaving(true);
+      setFormError('');
 
       if (config.key === 'clientes') {
         const documentDigits = onlyDigits(form.cpf_cnpj);
 
         if (form.client_type === 'PF' && documentDigits.length !== 11) {
-          Alert.alert('CPF invalido', 'Para pessoa fisica, informe um CPF com 11 digitos.');
+          setFormError('CPF invalido. Para pessoa fisica, informe um CPF com 11 digitos.');
           return;
         }
 
         if (form.client_type === 'PJ' && documentDigits.length !== 14) {
-          Alert.alert('CNPJ invalido', 'Para pessoa juridica, informe um CNPJ com 14 digitos.');
+          setFormError('CNPJ invalido. Para pessoa juridica, informe um CNPJ com 14 digitos.');
+          return;
+        }
+      }
+
+      if (config.key === 'contratos') {
+        const startDate = parseDateInput(form.start_date);
+        const endDate = parseDateInput(form.end_date);
+
+        if (!startDate) {
+          setFormError('Data de inicio invalida. Informe a data de inicio em yyyy-mm-dd ou dd/mm/yyyy.');
+          return;
+        }
+
+        if (!endDate) {
+          setFormError('Data de termino invalida. Informe a data de termino em yyyy-mm-dd ou dd/mm/yyyy.');
+          return;
+        }
+
+        if (startDate < todayDateOnly()) {
+          setFormError('Data de inicio invalida. A data de inicio do contrato nao pode ser anterior a hoje.');
+          return;
+        }
+
+        if (endDate < startDate) {
+          setFormError('Data de termino invalida. A data de termino nao pode ser menor que a data de inicio.');
           return;
         }
       }
@@ -161,7 +232,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
 
       navigation.navigate(entityKey as never);
     } catch (err: any) {
-      Alert.alert('Erro ao salvar', err.message || 'Verifique os campos e tente novamente.');
+      setFormError(err.message || 'Erro ao salvar. Verifique os campos e tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -236,7 +307,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
           style={[styles.input, field.type === 'textarea' && styles.textarea]}
           multiline={field.type === 'textarea'}
           keyboardType={field.type === 'number' || field.type === 'decimal' || field.name === 'phone' || field.name === 'cpf_cnpj' ? 'numeric' : 'default'}
-          placeholder={field.name === 'phone' ? '(11) 99999-9999' : field.name === 'cpf_cnpj' ? '000.000.000-00' : field.type === 'date' ? '2026-06-01' : field.label}
+          placeholder={field.name === 'phone' ? '(11) 99999-9999' : field.name === 'cpf_cnpj' ? '000.000.000-00' : field.type === 'date' ? '' : field.label}
         />
       </View>
     );
@@ -246,6 +317,12 @@ export default function CrudFormScreen({ route, navigation }: Props) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{isEditing ? `Editar ${config.singular}` : `Novo ${config.singular}`}</Text>
       {config.fields.map(renderField)}
+
+      {formError ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{formError}</Text>
+        </View>
+      ) : null}
 
       {saving ? (
         <ActivityIndicator size="large" color="#1E5AA8" style={{ marginTop: 20 }} />
@@ -277,6 +354,8 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: '#1E5AA8' },
   chipText: { color: '#1E5AA8', fontWeight: '700' },
   chipTextActive: { color: '#fff' },
+  errorBox: { backgroundColor: '#FDECEC', borderWidth: 1, borderColor: '#E08A8A', borderRadius: 10, padding: 12, marginTop: 18 },
+  errorText: { color: '#8A1F1F', fontSize: 14, fontWeight: '700', lineHeight: 20 },
   saveButton: { backgroundColor: '#1E5AA8', padding: 14, borderRadius: 10, marginTop: 24, alignItems: 'center' },
   saveText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   backButton: { padding: 14, borderRadius: 10, marginTop: 10, alignItems: 'center' },
