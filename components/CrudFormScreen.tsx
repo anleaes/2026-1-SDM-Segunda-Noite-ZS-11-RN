@@ -20,6 +20,35 @@ const toFormValue = (value: any) => {
   return String(value);
 };
 
+const onlyDigits = (value: any) => String(value ?? '').replace(/\D/g, '');
+
+const maskPhone = (value: any) => {
+  const digits = onlyDigits(value).slice(0, 11);
+
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
+const maskCpfCnpj = (value: any, clientType?: string) => {
+  const maxLength = clientType === 'PF' ? 11 : 14;
+  const digits = onlyDigits(value).slice(0, maxLength);
+
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  if (digits.length <= 11) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+};
+
+const maskFieldValue = (fieldName: string, value: any, formValues?: Record<string, any>) => {
+  if (fieldName === 'phone') return maskPhone(value);
+  if (fieldName === 'cpf_cnpj') return maskCpfCnpj(value, formValues?.client_type);
+  return value;
+};
+
 const castValue = (field: EntityField, value: any) => {
   if (field.type === 'number' || field.type === 'select') {
     if (value === '') return null;
@@ -48,7 +77,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
     const initial: Record<string, any> = {};
     config.fields.forEach(field => {
       if (item && Object.prototype.hasOwnProperty.call(item, field.name)) {
-        initial[field.name] = toFormValue(item[field.name]);
+        initial[field.name] = maskFieldValue(field.name, toFormValue(item[field.name]), initial);
       } else if (field.type === 'boolean') {
         initial[field.name] = true;
       } else if (field.type === 'multiselect') {
@@ -83,7 +112,16 @@ export default function CrudFormScreen({ route, navigation }: Props) {
   }, [entityKey]);
 
   const setValue = (name: string, value: any) => {
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm(prev => {
+      const next = { ...prev, [name]: value };
+
+      if (name === 'client_type') {
+        next.cpf_cnpj = maskFieldValue('cpf_cnpj', next.cpf_cnpj, next);
+      }
+
+      next[name] = maskFieldValue(name, value, next);
+      return next;
+    });
   };
 
   const toggleMulti = (name: string, id: number) => {
@@ -95,6 +133,21 @@ export default function CrudFormScreen({ route, navigation }: Props) {
   const handleSave = async () => {
     try {
       setSaving(true);
+
+      if (config.key === 'clientes') {
+        const documentDigits = onlyDigits(form.cpf_cnpj);
+
+        if (form.client_type === 'PF' && documentDigits.length !== 11) {
+          Alert.alert('CPF invalido', 'Para pessoa fisica, informe um CPF com 11 digitos.');
+          return;
+        }
+
+        if (form.client_type === 'PJ' && documentDigits.length !== 14) {
+          Alert.alert('CNPJ invalido', 'Para pessoa juridica, informe um CNPJ com 14 digitos.');
+          return;
+        }
+      }
+
       const payload: Record<string, any> = {};
       config.fields.forEach(field => {
         payload[field.name] = castValue(field, form[field.name]);
@@ -178,8 +231,8 @@ export default function CrudFormScreen({ route, navigation }: Props) {
           onChangeText={(text) => setValue(field.name, text)}
           style={[styles.input, field.type === 'textarea' && styles.textarea]}
           multiline={field.type === 'textarea'}
-          keyboardType={field.type === 'number' || field.type === 'decimal' ? 'numeric' : 'default'}
-          placeholder={field.type === 'date' ? '2026-06-01' : field.label}
+          keyboardType={field.type === 'number' || field.type === 'decimal' || field.name === 'phone' || field.name === 'cpf_cnpj' ? 'numeric' : 'default'}
+          placeholder={field.name === 'phone' ? '(11) 99999-9999' : field.name === 'cpf_cnpj' ? '000.000.000-00' : field.type === 'date' ? '2026-06-01' : field.label}
         />
       </View>
     );
