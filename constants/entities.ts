@@ -63,6 +63,12 @@ export const entityConfigs: Record<string, EntityConfig> = {
     description: 'Cadastre clientes e mantenha os dados de contato atualizados.',
     listFields: ['company_name', 'cpf_cnpj', 'email'],
     fields: [
+      {
+        name: 'client_type', label: 'Tipo de cliente', type: 'select', choices: [
+          { label: 'Pessoa Física', value: 'PF' },
+          { label: 'Pessoa Jurídica', value: 'PJ' },
+        ], required: true
+      },
       { name: 'first_name', label: 'Primeiro nome', type: 'text', required: true },
       { name: 'last_name', label: 'Sobrenome', type: 'text', required: true },
       { name: 'address', label: 'Endereço', type: 'text', required: true },
@@ -70,10 +76,6 @@ export const entityConfigs: Record<string, EntityConfig> = {
       { name: 'email', label: 'E-mail', type: 'text', required: true },
       { name: 'cpf_cnpj', label: 'CPF/CNPJ', type: 'text', required: true },
       { name: 'company_name', label: 'Razão social/Nome fantasia', type: 'text', required: true },
-      { name: 'client_type', label: 'Tipo de cliente', type: 'select', choices: [
-        { label: 'Pessoa Física', value: 'PF' },
-        { label: 'Pessoa Jurídica', value: 'PJ' },
-      ], required: true },
       { name: 'is_active', label: 'Ativo', type: 'boolean' },
       { name: 'contact_channels', label: 'Canais de contato', type: 'multiselect', relation: { endpoint: '/canais-contato/', labelField: 'name' } },
     ],
@@ -107,11 +109,13 @@ export const entityConfigs: Record<string, EntityConfig> = {
     fields: [
       { name: 'username', label: 'Usuário', type: 'text', required: true },
       { name: 'password', label: 'Senha', type: 'text', required: true },
-      { name: 'profile', label: 'Perfil', type: 'select', choices: [
-        { label: 'Administrador', value: 'ADMIN' },
-        { label: 'Gerente', value: 'GERENTE' },
-        { label: 'Operador', value: 'OPERADOR' },
-      ], required: true },
+      {
+        name: 'profile', label: 'Perfil', type: 'select', choices: [
+          { label: 'Administrador', value: 'ADMIN' },
+          { label: 'Gerente', value: 'GERENTE' },
+          { label: 'Operador', value: 'OPERADOR' },
+        ], required: true
+      },
       { name: 'is_active', label: 'Ativo', type: 'boolean' },
       { name: 'employee', label: 'Funcionário', type: 'select', relation: { endpoint: '/funcionarios/', labelField: 'first_name' }, required: true },
     ],
@@ -126,12 +130,14 @@ export const entityConfigs: Record<string, EntityConfig> = {
     fields: [
       { name: 'name', label: 'Nome', type: 'text', required: true },
       { name: 'description', label: 'Descrição', type: 'textarea', required: true },
-      { name: 'channel_type', label: 'Tipo de canal', type: 'select', choices: [
-        { label: 'Email', value: 'EMAIL' },
-        { label: 'Telefone', value: 'TELEFONE' },
-        { label: 'WhatsApp', value: 'WHATSAPP' },
-        { label: 'Outro', value: 'OUTRO' },
-      ], required: true },
+      {
+        name: 'channel_type', label: 'Tipo de canal', type: 'select', choices: [
+          { label: 'Email', value: 'EMAIL' },
+          { label: 'Telefone', value: 'TELEFONE' },
+          { label: 'WhatsApp', value: 'WHATSAPP' },
+          { label: 'Outro', value: 'OUTRO' },
+        ], required: true
+      },
       { name: 'is_active', label: 'Ativo', type: 'boolean' },
     ],
   },
@@ -243,12 +249,14 @@ export const entityConfigs: Record<string, EntityConfig> = {
       { name: 'title', label: 'Título', type: 'text', required: true },
       { name: 'message', label: 'Mensagem', type: 'textarea', required: true },
       { name: 'notification_date', label: 'Data da notificação (AAAA-MM-DD)', type: 'date', required: true },
-      { name: 'notification_type', label: 'Tipo', type: 'select', choices: [
-        { label: 'Vencimento', value: 'VENCIMENTO' },
-        { label: 'Pagamento', value: 'PAGAMENTO' },
-        { label: 'Documento', value: 'DOCUMENTO' },
-        { label: 'Geral', value: 'GERAL' },
-      ], required: true },
+      {
+        name: 'notification_type', label: 'Tipo', type: 'select', choices: [
+          { label: 'Vencimento', value: 'VENCIMENTO' },
+          { label: 'Pagamento', value: 'PAGAMENTO' },
+          { label: 'Documento', value: 'DOCUMENTO' },
+          { label: 'Geral', value: 'GERAL' },
+        ], required: true
+      },
       { name: 'is_read', label: 'Lida', type: 'boolean' },
       { name: 'contract', label: 'Contrato', type: 'select', relation: { endpoint: '/contratos/', labelField: 'number' }, required: true },
     ],
