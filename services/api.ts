@@ -90,3 +90,16 @@ export async function apiDelete(endpoint: string, id: number | string) {
   });
   if (!response.ok) throw new Error(`Erro ao excluir: ${response.status}`);
 }
+
+export async function apiPostAction(endpoint: string, id: number | string, action: string) {
+  const response = await fetch(`${buildUrl(endpoint, id)}${action}/`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, `Erro ao executar acao: ${response.status}`));
+  }
+
+  return response.json();
+}
