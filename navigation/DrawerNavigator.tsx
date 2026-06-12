@@ -7,6 +7,8 @@ import CrudFormScreen from '../components/CrudFormScreen';
 import CrudListScreen from '../components/CrudListScreen';
 import CustomDrawerContent from '../components/CustomDrawerContent';
 import { drawerEntityKeys, entityConfigs } from '../constants/entities';
+import { getVisibleEntityKeys } from '../constants/access';
+import { useAuth } from '../contexts/AuthContext';
 import HomeScreen from '../screens/HomeScreen';
 
 export type DrawerParamList = {
@@ -35,6 +37,9 @@ const makeListScreen = (entityKey: string) => {
 };
 
 export default function DrawerNavigator() {
+  const { profile } = useAuth();
+  const visibleEntityKeys = getVisibleEntityKeys(profile, drawerEntityKeys);
+
   return (
     <Drawer.Navigator
       initialRouteName="Home"
@@ -69,7 +74,7 @@ export default function DrawerNavigator() {
         }}
       />
 
-      {drawerEntityKeys.map((key) => {
+      {visibleEntityKeys.map((key) => {
         const config = entityConfigs[key];
 
         return (

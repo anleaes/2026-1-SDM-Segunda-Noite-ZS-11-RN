@@ -6,6 +6,8 @@ import { ActivityIndicator, Alert, FlatList, Modal, RefreshControl, StyleSheet, 
 import { EntityConfig } from '../constants/entities';
 import { DrawerParamList } from '../navigation/DrawerNavigator';
 import { apiDelete, apiList, apiPostAction } from '../services/api';
+import { canDeleteEntity, canManageEntity } from '../constants/access';
+import { useAuth } from '../contexts/AuthContext';
 
 type Props = DrawerScreenProps<DrawerParamList, any> & {
   config: EntityConfig;
@@ -21,8 +23,10 @@ const formatValue = (value: any) => {
 };
 
 export default function CrudListScreen({ navigation, config }: Props) {
-  const isReadOnly = config.key === 'auditorias';
-  const isViewOnly = ['auditorias', 'notificacoes'].includes(config.key);
+  const { profile } = useAuth();
+  const canManage = canManageEntity(profile, config.key);
+  const canDelete = canDeleteEntity(profile, config.key);
+  const isViewOnly = !canManage;
   const hasLiveUpdates = ['auditorias', 'notificacoes'].includes(config.key);
   const [items, setItems] = useState<any[]>([]);
   const [relationMaps, setRelationMaps] = useState<RelationMaps>({});
@@ -177,7 +181,7 @@ export default function CrudListScreen({ navigation, config }: Props) {
           <Text style={styles.actionText}>{isViewOnly ? 'Visualizar' : 'Editar'}</Text>
         </TouchableOpacity>
 
-        {!isReadOnly && (
+        {canDelete && (
           <TouchableOpacity
             style={[styles.actionButton, styles.deleteButton]}
             onPress={() => handleDelete(item.id)}
@@ -214,7 +218,7 @@ export default function CrudListScreen({ navigation, config }: Props) {
         />
       )}
 
-      {!isViewOnly && (
+      {canManage && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => navigation.navigate('EntityForm', { entityKey: config.key })}
@@ -223,7 +227,7 @@ export default function CrudListScreen({ navigation, config }: Props) {
         </TouchableOpacity>
       )}
 
-      {!isReadOnly && (
+      {canDelete && (
         <Modal
           transparent
           animationType="fade"
