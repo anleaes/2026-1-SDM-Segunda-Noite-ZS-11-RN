@@ -15,6 +15,7 @@ export type EntityField = {
   label: string;
   type: FieldType;
   required?: boolean;
+  readOnly?: boolean;
   choices?: Choice[];
   relation?: RelationConfig;
 };
@@ -115,7 +116,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
         name: 'profile', label: 'Perfil', type: 'select', choices: [
           { label: 'Administrador', value: 'ADMIN' },
           { label: 'Gerente', value: 'GERENTE' },
-          { label: 'Operador', value: 'OPERADOR' },
+          { label: 'Funcionário', value: 'FUNCIONARIO' },
         ], required: true
       },
       { name: 'is_active', label: 'Ativo', type: 'boolean' },
@@ -188,7 +189,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
       { name: 'description', label: 'Descrição', type: 'textarea', required: true },
       { name: 'start_date', label: 'Data de início (AAAA-MM-DD ou DD/MM/AAAA)', type: 'date', required: true },
       { name: 'end_date', label: 'Data de fim (AAAA-MM-DD ou DD/MM/AAAA)', type: 'date', required: true },
-      { name: 'total_value', label: 'Valor total', type: 'decimal', required: true },
+      { name: 'total_value', label: 'Valor total (calculado pelos itens)', type: 'decimal', readOnly: true },
       { name: 'status', label: 'Status', type: 'select', choices: statusContrato, required: true },
       { name: 'client', label: 'Cliente', type: 'select', relation: { endpoint: '/clientes/', labelField: 'company_name' }, required: true },
       { name: 'employee', label: 'Funcionário responsável', type: 'select', relation: { endpoint: '/funcionarios/', labelField: 'first_name' }, required: true },
@@ -206,7 +207,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     fields: [
       { name: 'quantity', label: 'Quantidade', type: 'number', required: true },
       { name: 'unitary_price', label: 'Preço unitário', type: 'decimal', required: true },
-      { name: 'total_price', label: 'Preço total', type: 'decimal', required: true },
+      { name: 'total_price', label: 'Preço total (calculado)', type: 'decimal', readOnly: true },
       { name: 'description', label: 'Descrição', type: 'textarea', required: true },
       { name: 'service', label: 'Serviço', type: 'select', relation: { endpoint: '/servicos/', labelField: 'name' }, required: true },
       { name: 'contract', label: 'Contrato', type: 'select', relation: { endpoint: '/contratos/', labelField: 'number' }, required: true },

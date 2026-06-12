@@ -6,6 +6,8 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { entityConfigs } from '../constants/entities';
 import { DrawerParamList } from '../navigation/DrawerNavigator';
 import { apiList } from '../services/api';
+import { canManageEntity } from '../constants/access';
+import { useAuth } from '../contexts/AuthContext';
 
 type Props = DrawerScreenProps<DrawerParamList, 'Home'>;
 type RouteName = keyof DrawerParamList;
@@ -65,6 +67,8 @@ const isWithinNextDays = (dateValue: string | undefined, days: number) => {
 };
 
 const HomeScreen = ({ navigation }: Props) => {
+  const { profile } = useAuth();
+  const canManageContracts = canManageEntity(profile, 'contratos');
   const [data, setData] = useState<DashboardData>(initialData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -204,9 +208,11 @@ const HomeScreen = ({ navigation }: Props) => {
           <Text style={styles.eyebrow}>Painel executivo</Text>
           <Text style={styles.title}>Gestao de contratos</Text>
         </View>
-        <TouchableOpacity style={styles.iconButton} onPress={openEntityForm}>
-          <Ionicons name="add-outline" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        {canManageContracts && (
+          <TouchableOpacity style={styles.iconButton} onPress={openEntityForm}>
+            <Ionicons name="add-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {!!error && (
@@ -271,7 +277,7 @@ const HomeScreen = ({ navigation }: Props) => {
       </View>
 
       <View style={styles.actionsGrid}>
-        {quickActions.map((item) => (
+        {quickActions.filter(item => item.route !== 'EntityForm' || canManageContracts).map((item) => (
           <TouchableOpacity
             key={item.label}
             style={styles.actionButton}

@@ -1,10 +1,14 @@
 import React, { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 
 import { apiAuthStatus, apiLogin, apiLogout } from '../services/api';
+import { UserProfile } from '../constants/access';
 
 type AuthContextValue = {
   isLoading: boolean;
   isAuthenticated: boolean;
+  username: string | null;
+  profile: UserProfile | null;
+  employeeId: number | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -24,24 +28,37 @@ const clearLegacyLocalStorageToken = () => {
 export function AuthProvider({ children }: PropsWithChildren) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [username, setUsername] = useState<string | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [employeeId, setEmployeeId] = useState<number | null>(null);
+
+  const applySession = (session: Awaited<ReturnType<typeof apiAuthStatus>>) => {
+    setIsAuthenticated(Boolean(session?.authenticated));
+    setUsername(session?.username ?? null);
+    setProfile(session?.profile ?? null);
+    setEmployeeId(session?.employee_id ?? null);
+  };
 
   useEffect(() => {
     const loadSession = async () => {
       clearLegacyLocalStorageToken();
-      const authenticated = await apiAuthStatus();
-      setIsAuthenticated(authenticated);
+      const session = await apiAuthStatus();
+      applySession(session);
       setIsLoading(false);
     };
 
     loadSession().catch(() => {
       setIsAuthenticated(false);
+      setUsername(null);
+      setProfile(null);
+      setEmployeeId(null);
       setIsLoading(false);
     });
   }, []);
 
   const login = async (username: string, password: string) => {
-    await apiLogin(username, password);
-    setIsAuthenticated(true);
+    const session = await apiLogin(username, password);
+    applySession(session);
   };
 
   const logout = async () => {
@@ -49,6 +66,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       await apiLogout();
     } finally {
       setIsAuthenticated(false);
+      setUsername(null);
+      setProfile(null);
+      setEmployeeId(null);
     }
   };
 
@@ -56,10 +76,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     () => ({
       isLoading,
       isAuthenticated,
+      username,
+      profile,
+      employeeId,
       login,
       logout,
     }),
-    [isAuthenticated, isLoading]
+    [employeeId, isAuthenticated, isLoading, profile, username]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

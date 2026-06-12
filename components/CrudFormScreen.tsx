@@ -5,6 +5,8 @@ import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, TextInput, Tou
 import { entityConfigs, EntityField } from '../constants/entities';
 import { DrawerParamList } from '../navigation/DrawerNavigator';
 import { apiCreate, apiList, apiUpdate } from '../services/api';
+import { canManageEntity } from '../constants/access';
+import { useAuth } from '../contexts/AuthContext';
 
 type Props = DrawerScreenProps<DrawerParamList, 'EntityForm'>;
 
@@ -110,7 +112,8 @@ export default function CrudFormScreen({ route, navigation }: Props) {
   const { entityKey, item } = route.params;
   const config = entityConfigs[entityKey];
   const isEditing = Boolean(item?.id);
-  const isReadOnly = ['auditorias', 'notificacoes'].includes(config.key);
+  const { profile } = useAuth();
+  const isReadOnly = !canManageEntity(profile, config.key);
 
   const [form, setForm] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
@@ -128,6 +131,8 @@ export default function CrudFormScreen({ route, navigation }: Props) {
     config.fields.forEach(field => {
       if (item && Object.prototype.hasOwnProperty.call(item, field.name)) {
         initial[field.name] = maskFieldValue(field.name, toFormValue(item[field.name]), initial);
+      } else if (field.readOnly && field.type === 'decimal') {
+        initial[field.name] = '0.00';
       } else if (field.type === 'boolean') {
         initial[field.name] = true;
       } else if (field.type === 'multiselect') {
@@ -228,13 +233,23 @@ export default function CrudFormScreen({ route, navigation }: Props) {
 
       const payload: Record<string, any> = {};
       config.fields.forEach(field => {
-        payload[field.name] = castValue(field, form[field.name]);
+        if (!field.readOnly) {
+          payload[field.name] = castValue(field, form[field.name]);
+        }
       });
 
       if (isEditing) {
         await apiUpdate(config.endpoint, item.id, payload);
       } else {
-        await apiCreate(config.endpoint, payload);
+        const createdItem = await apiCreate(config.endpoint, payload);
+
+        if (config.key === 'contratos') {
+          navigation.navigate('EntityForm', {
+            entityKey: 'itensContrato',
+            item: { contract: createdItem.id },
+          });
+          return;
+        }
       }
 
       navigation.navigate(entityKey as never);
@@ -247,6 +262,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
 
   const renderField = (field: EntityField) => {
     const value = form[field.name];
+    const isFieldReadOnly = isReadOnly || field.readOnly;
 
     if (field.type === 'boolean') {
       return (
@@ -254,7 +270,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
           <Text style={styles.label}>{field.label}</Text>
           <Switch
             value={Boolean(value)}
-            disabled={isReadOnly}
+            disabled={isFieldReadOnly}
             onValueChange={(checked) => setValue(field.name, checked)}
           />
         </View>
@@ -272,7 +288,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={value}
-              enabled={!isReadOnly}
+              enabled={!isFieldReadOnly}
               onValueChange={(selected) => setValue(field.name, selected)}
               style={styles.picker}
             >
@@ -298,8 +314,8 @@ export default function CrudFormScreen({ route, navigation }: Props) {
               return (
                 <TouchableOpacity
                   key={option.id}
-                  disabled={isReadOnly}
-                  style={[styles.chip, active && styles.chipActive, isReadOnly && styles.disabledControl]}
+                  disabled={isFieldReadOnly}
+                  style={[styles.chip, active && styles.chipActive, isFieldReadOnly && styles.disabledControl]}
                   onPress={() => toggleMulti(field.name, option.id)}
                 >
                   <Text style={[styles.chipText, active && styles.chipTextActive]}>{option.label}</Text>
@@ -316,9 +332,9 @@ export default function CrudFormScreen({ route, navigation }: Props) {
         <Text style={styles.label}>{field.label}</Text>
         <TextInput
           value={String(value ?? '')}
-          editable={!isReadOnly}
+          editable={!isFieldReadOnly}
           onChangeText={(text) => setValue(field.name, text)}
-          style={[styles.input, field.type === 'textarea' && styles.textarea, isReadOnly && styles.readOnlyInput]}
+          style={[styles.input, field.type === 'textarea' && styles.textarea, isFieldReadOnly && styles.readOnlyInput]}
           multiline={field.type === 'textarea'}
           keyboardType={field.type === 'number' || field.type === 'decimal' || field.name === 'phone' || field.name === 'cpf_cnpj' ? 'numeric' : 'default'}
           placeholder={field.name === 'phone' ? '(11) 99999-9999' : field.name === 'cpf_cnpj' ? '000.000.000-00' : field.type === 'date' ? '' : field.label}

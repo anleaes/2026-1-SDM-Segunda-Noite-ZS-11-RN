@@ -1,4 +1,12 @@
 import { buildUrl } from '../constants/api';
+import { UserProfile } from '../constants/access';
+
+export type AuthSession = {
+  authenticated: boolean;
+  username: string;
+  profile: UserProfile | null;
+  employee_id: number | null;
+};
 
 const readErrorMessage = async (response: Response, fallback: string) => {
   const errorText = await response.text();
@@ -15,7 +23,7 @@ const readErrorMessage = async (response: Response, fallback: string) => {
   }
 };
 
-export async function apiLogin(username: string, password: string) {
+export async function apiLogin(username: string, password: string): Promise<AuthSession> {
   const response = await fetch(buildUrl('/token-autenticacao/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -30,12 +38,13 @@ export async function apiLogin(username: string, password: string) {
   return response.json();
 }
 
-export async function apiAuthStatus() {
+export async function apiAuthStatus(): Promise<AuthSession | null> {
   const response = await fetch(buildUrl('/auth/status/'), {
     credentials: 'include',
   });
 
-  return response.ok;
+  if (!response.ok) return null;
+  return response.json();
 }
 
 export async function apiLogout() {
