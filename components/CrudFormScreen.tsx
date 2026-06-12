@@ -110,15 +110,18 @@ export default function CrudFormScreen({ route, navigation }: Props) {
   const { entityKey, item } = route.params;
   const config = entityConfigs[entityKey];
   const isEditing = Boolean(item?.id);
-<<<<<<< Updated upstream
-=======
   const isReadOnly = ['auditorias', 'notificacoes'].includes(config.key);
->>>>>>> Stashed changes
 
   const [form, setForm] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
   const [relationOptions, setRelationOptions] = useState<Record<string, Option[]>>({});
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: isReadOnly ? `Visualizar ${config.singular}` : isEditing ? `Editar ${config.singular}` : `Novo ${config.singular}`,
+    });
+  }, [config.singular, isEditing, isReadOnly, navigation]);
 
   useEffect(() => {
     const initial: Record<string, any> = {};
@@ -249,7 +252,11 @@ export default function CrudFormScreen({ route, navigation }: Props) {
       return (
         <View key={field.name} style={styles.switchRow}>
           <Text style={styles.label}>{field.label}</Text>
-          <Switch value={Boolean(value)} onValueChange={(checked) => setValue(field.name, checked)} />
+          <Switch
+            value={Boolean(value)}
+            disabled={isReadOnly}
+            onValueChange={(checked) => setValue(field.name, checked)}
+          />
         </View>
       );
     }
@@ -265,6 +272,7 @@ export default function CrudFormScreen({ route, navigation }: Props) {
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={value}
+              enabled={!isReadOnly}
               onValueChange={(selected) => setValue(field.name, selected)}
               style={styles.picker}
             >
@@ -290,7 +298,8 @@ export default function CrudFormScreen({ route, navigation }: Props) {
               return (
                 <TouchableOpacity
                   key={option.id}
-                  style={[styles.chip, active && styles.chipActive]}
+                  disabled={isReadOnly}
+                  style={[styles.chip, active && styles.chipActive, isReadOnly && styles.disabledControl]}
                   onPress={() => toggleMulti(field.name, option.id)}
                 >
                   <Text style={[styles.chipText, active && styles.chipTextActive]}>{option.label}</Text>
@@ -307,8 +316,9 @@ export default function CrudFormScreen({ route, navigation }: Props) {
         <Text style={styles.label}>{field.label}</Text>
         <TextInput
           value={String(value ?? '')}
+          editable={!isReadOnly}
           onChangeText={(text) => setValue(field.name, text)}
-          style={[styles.input, field.type === 'textarea' && styles.textarea]}
+          style={[styles.input, field.type === 'textarea' && styles.textarea, isReadOnly && styles.readOnlyInput]}
           multiline={field.type === 'textarea'}
           keyboardType={field.type === 'number' || field.type === 'decimal' || field.name === 'phone' || field.name === 'cpf_cnpj' ? 'numeric' : 'default'}
           placeholder={field.name === 'phone' ? '(11) 99999-9999' : field.name === 'cpf_cnpj' ? '000.000.000-00' : field.type === 'date' ? '' : field.label}
@@ -319,7 +329,9 @@ export default function CrudFormScreen({ route, navigation }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>{isEditing ? `Editar ${config.singular}` : `Novo ${config.singular}`}</Text>
+      <Text style={styles.title}>
+        {isReadOnly ? `Visualizar ${config.singular}` : isEditing ? `Editar ${config.singular}` : `Novo ${config.singular}`}
+      </Text>
       {config.fields.map(renderField)}
 
       {formError ? (
@@ -328,12 +340,14 @@ export default function CrudFormScreen({ route, navigation }: Props) {
         </View>
       ) : null}
 
-      {saving ? (
-        <ActivityIndicator size="large" color="#1E5AA8" style={{ marginTop: 20 }} />
-      ) : (
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveText}>{isEditing ? 'Salvar alteracoes' : 'Cadastrar'}</Text>
-        </TouchableOpacity>
+      {!isReadOnly && (
+        saving ? (
+          <ActivityIndicator size="large" color="#1E5AA8" style={{ marginTop: 20 }} />
+        ) : (
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveText}>{isEditing ? 'Salvar alteracoes' : 'Cadastrar'}</Text>
+          </TouchableOpacity>
+        )
       )}
 
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate(entityKey as never)}>
@@ -349,6 +363,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: 'bold', color: '#17233D', marginBottom: 16, alignSelf: 'center' },
   label: { fontSize: 14, fontWeight: '700', color: '#34415A', marginBottom: 6, marginTop: 12 },
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D8DEE9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15 },
+  readOnlyInput: { backgroundColor: '#EEF2F7', color: '#5D6778' },
   textarea: { height: 90, textAlignVertical: 'top' },
   pickerWrapper: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D8DEE9', borderRadius: 10, minHeight: 48, justifyContent: 'center', overflow: 'hidden' },
   picker: { minHeight: 48, fontSize: 15, color: '#17233D' },
@@ -358,6 +373,7 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: '#1E5AA8' },
   chipText: { color: '#1E5AA8', fontWeight: '700' },
   chipTextActive: { color: '#fff' },
+  disabledControl: { opacity: 0.65 },
   errorBox: { backgroundColor: '#FDECEC', borderWidth: 1, borderColor: '#E08A8A', borderRadius: 10, padding: 12, marginTop: 18 },
   errorText: { color: '#8A1F1F', fontSize: 14, fontWeight: '700', lineHeight: 20 },
   saveButton: { backgroundColor: '#1E5AA8', padding: 14, borderRadius: 10, marginTop: 24, alignItems: 'center' },

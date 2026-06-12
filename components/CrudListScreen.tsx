@@ -21,12 +21,9 @@ const formatValue = (value: any) => {
 };
 
 export default function CrudListScreen({ navigation, config }: Props) {
-<<<<<<< Updated upstream
-=======
   const isReadOnly = config.key === 'auditorias';
   const isViewOnly = ['auditorias', 'notificacoes'].includes(config.key);
   const hasLiveUpdates = ['auditorias', 'notificacoes'].includes(config.key);
->>>>>>> Stashed changes
   const [items, setItems] = useState<any[]>([]);
   const [relationMaps, setRelationMaps] = useState<RelationMaps>({});
   const [loading, setLoading] = useState(true);
@@ -177,19 +174,17 @@ export default function CrudListScreen({ navigation, config }: Props) {
             navigation.navigate('EntityForm', { entityKey: config.key, item });
           }}
         >
-<<<<<<< Updated upstream
-          <Text style={styles.actionText}>Editar</Text>
-=======
           <Text style={styles.actionText}>{isViewOnly ? 'Visualizar' : 'Editar'}</Text>
->>>>>>> Stashed changes
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => handleDelete(item.id)}
-        >
-          <Text style={styles.actionText}>Excluir</Text>
-        </TouchableOpacity>
+        {!isReadOnly && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDelete(item.id)}
+          >
+            <Text style={styles.actionText}>Excluir</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -219,14 +214,6 @@ export default function CrudListScreen({ navigation, config }: Props) {
         />
       )}
 
-<<<<<<< Updated upstream
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('EntityForm', { entityKey: config.key })}
-      >
-        <Ionicons name="add" size={30} color="#fff" />
-      </TouchableOpacity>
-=======
       {!isViewOnly && (
         <TouchableOpacity
           style={styles.fab}
@@ -235,40 +222,41 @@ export default function CrudListScreen({ navigation, config }: Props) {
           <Ionicons name="add" size={30} color="#fff" />
         </TouchableOpacity>
       )}
->>>>>>> Stashed changes
 
-      <Modal
-        transparent
-        animationType="fade"
-        visible={deleteTargetId !== null}
-        onRequestClose={() => setDeleteTargetId(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Confirmar exclusao</Text>
-            <Text style={styles.modalText}>
-              Deseja excluir este {config.singular.toLowerCase()}?
-            </Text>
+      {!isReadOnly && (
+        <Modal
+          transparent
+          animationType="fade"
+          visible={deleteTargetId !== null}
+          onRequestClose={() => setDeleteTargetId(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Confirmar exclusao</Text>
+              <Text style={styles.modalText}>
+                Deseja excluir este {config.singular.toLowerCase()}?
+              </Text>
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setDeleteTargetId(null)}>
-                <Text style={styles.cancelText}>Cancelar</Text>
-              </TouchableOpacity>
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setDeleteTargetId(null)}>
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmDeleteButton]}
-                onPress={() => {
-                  if (deleteTargetId !== null) {
-                    deleteItem(deleteTargetId);
-                  }
-                }}
-              >
-                <Text style={styles.actionText}>Excluir</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmDeleteButton]}
+                  onPress={() => {
+                    if (deleteTargetId !== null) {
+                      deleteItem(deleteTargetId);
+                    }
+                  }}
+                >
+                  <Text style={styles.actionText}>Excluir</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 }
