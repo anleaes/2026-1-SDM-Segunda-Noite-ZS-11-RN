@@ -2,10 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerScreenProps } from '@react-navigation/drawer';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Modal, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { EntityConfig } from '../constants/entities';
 import { DrawerParamList } from '../navigation/DrawerNavigator';
-import { apiDelete, apiList } from '../services/api';
+import { apiDelete, apiList, apiPostAction } from '../services/api';
 
 type Props = DrawerScreenProps<DrawerParamList, any> & {
   config: EntityConfig;
@@ -21,9 +21,16 @@ const formatValue = (value: any) => {
 };
 
 export default function CrudListScreen({ navigation, config }: Props) {
+<<<<<<< Updated upstream
+=======
+  const isReadOnly = config.key === 'auditorias';
+  const isViewOnly = ['auditorias', 'notificacoes'].includes(config.key);
+  const hasLiveUpdates = ['auditorias', 'notificacoes'].includes(config.key);
+>>>>>>> Stashed changes
   const [items, setItems] = useState<any[]>([]);
   const [relationMaps, setRelationMaps] = useState<RelationMaps>({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [deleteTargetId, setDeleteTargetId] = useState<number | string | null>(null);
 
@@ -48,7 +55,7 @@ export default function CrudListScreen({ navigation, config }: Props) {
     return value;
   };
 
-  const fetchRelations = async () => {
+  const fetchRelations = useCallback(async () => {
     const fieldsWithRelation = config.fields.filter(field => field.relation);
     const maps: RelationMaps = {};
 
@@ -66,11 +73,11 @@ export default function CrudListScreen({ navigation, config }: Props) {
     }
 
     setRelationMaps(maps);
-  };
+  }, [config.fields]);
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       setError('');
 
       await fetchRelations();
@@ -80,15 +87,34 @@ export default function CrudListScreen({ navigation, config }: Props) {
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar registros.');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
-  };
+  }, [config.endpoint, fetchRelations]);
 
   useFocusEffect(
     useCallback(() => {
       fetchItems();
-    }, [config.endpoint])
+
+      if (!hasLiveUpdates) return undefined;
+
+      const intervalId = setInterval(async () => {
+        try {
+          const data = await apiList(config.endpoint);
+          setItems(Array.isArray(data) ? data : data.results ?? []);
+        } catch {
+          // Mantem os dados atuais se uma atualizacao em segundo plano falhar.
+        }
+      }, 5000);
+
+      return () => clearInterval(intervalId);
+    }, [config.endpoint, fetchItems, hasLiveUpdates])
   );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchItems(false);
+    setRefreshing(false);
+  };
 
   const deleteItem = async (id: number | string) => {
     try {
@@ -102,6 +128,24 @@ export default function CrudListScreen({ navigation, config }: Props) {
 
   const handleDelete = (id: number | string) => {
     setDeleteTargetId(id);
+  };
+
+  const handleView = async (item: any) => {
+    let viewedItem = item;
+
+    if (config.key === 'notificacoes' && !item.is_read) {
+      try {
+        viewedItem = await apiPostAction(config.endpoint, item.id, 'mark-read');
+        setItems(prev => prev.map(current => (
+          String(current.id) === String(item.id) ? viewedItem : current
+        )));
+      } catch (err: any) {
+        Alert.alert('Erro', err.message || 'Nao foi possivel marcar a notificacao como lida.');
+        return;
+      }
+    }
+
+    navigation.navigate('EntityForm', { entityKey: config.key, item: viewedItem });
   };
 
   const renderItem = ({ item }: { item: any }) => (
@@ -124,9 +168,20 @@ export default function CrudListScreen({ navigation, config }: Props) {
       <View style={styles.actions}>
         <TouchableOpacity
           style={[styles.actionButton, styles.editButton]}
-          onPress={() => navigation.navigate('EntityForm', { entityKey: config.key, item })}
+          onPress={() => {
+            if (isViewOnly) {
+              handleView(item);
+              return;
+            }
+
+            navigation.navigate('EntityForm', { entityKey: config.key, item });
+          }}
         >
+<<<<<<< Updated upstream
           <Text style={styles.actionText}>Editar</Text>
+=======
+          <Text style={styles.actionText}>{isViewOnly ? 'Visualizar' : 'Editar'}</Text>
+>>>>>>> Stashed changes
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -151,17 +206,36 @@ export default function CrudListScreen({ navigation, config }: Props) {
           data={items}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={['#1E5AA8']}
+              tintColor="#1E5AA8"
+            />
+          }
           ListEmptyComponent={<Text style={styles.empty}>Nenhum registro encontrado para {config.title.toLowerCase()}.</Text>}
           contentContainerStyle={{ paddingBottom: 90 }}
         />
       )}
 
+<<<<<<< Updated upstream
       <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate('EntityForm', { entityKey: config.key })}
       >
         <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
+=======
+      {!isViewOnly && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('EntityForm', { entityKey: config.key })}
+        >
+          <Ionicons name="add" size={30} color="#fff" />
+        </TouchableOpacity>
+      )}
+>>>>>>> Stashed changes
 
       <Modal
         transparent

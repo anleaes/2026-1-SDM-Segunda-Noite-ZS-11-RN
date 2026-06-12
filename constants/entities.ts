@@ -282,7 +282,7 @@ export const entityConfigs: Record<string, EntityConfig> = {
     fields: [
       { name: 'action', label: 'Ação', type: 'text', required: true },
       { name: 'description', label: 'Descrição', type: 'textarea', required: true },
-      { name: 'action_date', label: 'Data da ação (AAAA-MM-DD)', type: 'date', required: true },
+      { name: 'action_date', label: 'Data da ação', type: 'date', required: true },
       { name: 'ip_address', label: 'Endereço IP', type: 'text', required: true },
       { name: 'user', label: 'Usuário', type: 'select', relation: { endpoint: '/usuarios/', labelField: 'username' }, required: true },
       { name: 'contract', label: 'Contrato', type: 'select', relation: { endpoint: '/contratos/', labelField: 'number' }, required: true },

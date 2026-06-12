@@ -110,6 +110,10 @@ export default function CrudFormScreen({ route, navigation }: Props) {
   const { entityKey, item } = route.params;
   const config = entityConfigs[entityKey];
   const isEditing = Boolean(item?.id);
+<<<<<<< Updated upstream
+=======
+  const isReadOnly = ['auditorias', 'notificacoes'].includes(config.key);
+>>>>>>> Stashed changes
 
   const [form, setForm] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
